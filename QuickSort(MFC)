@@ -1,0 +1,185 @@
+// MFCquicksort.cpp : 定义控制台应用程序的入口点。
+//
+
+#include "stdafx.h"
+#include <afxmt.h>
+#include <iostream>
+#include <afxwin.h>
+#include "time.h"
+#define Num 10000000
+using namespace std;
+long wht_length;
+long  wht_array[Num];
+long  wht_array1[Num];
+long  wht_array2[Num];
+CEvent faxEvent1(false); 
+CEvent faxEvent2(false);
+CEvent faxEvent3(false);
+CEvent faxEvent(false);
+/* 
+* 函数名: QuickSort 
+* 功能：对起止位置为wht_start和wht_end的数组序列，进行串行快速排序。 
+* 输入：无序数组wht_array[1,wht_n] 
+* 返回：有序数组wht_array[1,wht_n] 
+*/  
+int QuickSort(long R[],long  wht_start, long wht_end)
+{
+	long i=wht_start,j=wht_end;
+	long  wht_tmp;
+	if(wht_start<wht_end)
+	{
+		wht_tmp=R[wht_start];
+		while(i!=j)
+		{
+			while(j>i&&wht_array[j]>=wht_tmp)
+				j--;
+			wht_array[i]=wht_array[j];
+			while(i<j&&R[i]<=wht_tmp)
+				i++;
+			wht_array[j]=wht_array[i];
+		}
+		wht_array[i]=wht_tmp;
+		QuickSort(wht_array,wht_start,i-1);
+		QuickSort(wht_array,i+1,wht_end); 
+	}
+	return 0;
+}
+/* 
+* 函数名: QuickSort1 
+* 功能：对起止位置为wht_start和wht_end的数组序列，进行串行快速排序。 
+* 输入：无序数组wht_array[1,wht_n/2] 
+* 返回：有序数组wht_array[1,wht_n/2] 
+*/ 
+int QuickSort1(long wht_array1[],long  wht_start, long wht_end)
+{
+	long i=wht_start,j=wht_end;
+	long  wht_tmp;
+	if(wht_start<wht_end)
+	{
+
+		wht_tmp=wht_array1[wht_start];
+		while(i!=j)
+		{
+			while(j>i&&wht_array1[j]>=wht_tmp)
+				j--;
+			wht_array1[i]=wht_array1[j];
+			while(i<j&&wht_array1[i]<=wht_tmp)
+				i++;
+			wht_array1[j]=wht_array1[i];
+		}
+		wht_array1[i]=wht_tmp;
+		QuickSort1(wht_array1,wht_start,i-1);
+		QuickSort1(wht_array1,i+1,wht_end); 
+	}
+	return 0;
+}
+ /*
+* 函数名: Merge 
+* 功能：对已经排好顺序的两个数组进行归并排序形成一个有序数组。 
+* 输入：有序数组wht_array2[1,wht_n/2]，wht_array1[1,wht_n/2] 
+* 返回：有序数组wht_array[1,wht_n] 
+*/  
+void Merge(long  wht_array[],long wht_start,long wht_mid,long wht_length)
+{   long *wht_array_temp;
+	long i=wht_start,j=wht_mid+1,wht_k=0;
+	wht_array_temp=(long *)malloc((wht_length-wht_start+1)*sizeof(long));
+	while(i<=wht_mid&&j<=wht_length)
+		if(wht_array[i]<=wht_array[j])
+		{
+			wht_array_temp[wht_k]=wht_array[i];
+			i++;wht_k++;
+		}
+		else
+		{
+			wht_array_temp[wht_k]=wht_array[j];
+			j++;wht_k++;
+		}
+		while(i<=wht_mid)
+		{
+			wht_array_temp[wht_k]=wht_array[i];
+			i++;wht_k++;
+
+		}
+		while(j<=wht_length)
+		{
+			wht_array_temp[wht_k]=wht_array[j];
+			j++;wht_k++;
+		}
+		for(wht_k=0,i=wht_start;i<=wht_length;wht_k++,i++)
+			wht_array[i]=wht_array_temp[wht_k];
+		free(wht_array_temp);
+}
+UINT threadProc4(LPVOID param){
+	{QuickSort(wht_array,0,wht_length/2-1);}
+	SetEvent(faxEvent1);
+	return 0;
+}
+UINT threadProc5(LPVOID param){
+	{QuickSort(wht_array,wht_length/2,wht_length-1);}
+	SetEvent(faxEvent2);
+	return 0;
+}
+UINT threadProc6(LPVOID param){
+	{Merge(wht_array,0,wht_length/2-1, wht_length-1);}
+	SetEvent(faxEvent3);
+	return 0;
+}
+UINT threadProc7(LPVOID param){
+	{ QuickSort1(wht_array1,0,wht_length-1);}
+	SetEvent(faxEvent);
+	return 0;
+}
+int _tmain(int argc, _TCHAR* argv[])
+{  
+	//cout<<"MFC实现"<<endl;
+	//cout<<"输入数组长度:=";
+	//cin>>wht_length;
+//	while(TRUE)
+	{
+		printf("请输入生成的随机数的个数:");
+		cin>>wht_length;
+		/*读出正确的cin>>wht_length;，返回；否则，继续要求输入*/
+//		if((wht_length>=90000) && (wht_length<=10000000))	
+		{
+//			break;
+		}
+//		printf("输入错误,数字范围是 [90000~100000]");
+	}
+	cout<<"随机数生成："<<endl;
+	srand(396);
+	for(int i=0;i<wht_length;i++)
+	{
+	wht_array[i]=rand();//产生随机数
+	wht_array1[i]=wht_array[i];
+	cout<<wht_array[i]<<" ";
+	}
+	cout<<endl;
+	clock_t t1=clock();
+    AfxBeginThread(threadProc7,NULL);
+	WaitForSingleObject(faxEvent,INFINITE);
+	clock_t t2=clock();
+	cout<<"串行结果"<<endl;
+	for(int i=0;i<wht_length;i++)
+		cout<<wht_array[i]<<" ";
+	cout<<endl;
+	double cost1=t2-t1;
+	cout<<"串行时间:="<<cost1<<endl;
+	clock_t t3=clock();
+	AfxBeginThread(threadProc4,NULL);
+	AfxBeginThread(threadProc5,NULL);
+	WaitForSingleObject(faxEvent1,INFINITE);
+	WaitForSingleObject(faxEvent2,INFINITE);
+	AfxBeginThread(threadProc6,NULL);
+	WaitForSingleObject(faxEvent3,INFINITE);
+	clock_t t4=clock();
+	cout<<"并行结果："<<endl;
+	for(int i=0;i<wht_length;i++)
+		cout<<wht_array[i]<<" ";
+	cout<<endl;
+	double cost2=t4-t3;
+	cout<<"并行时间:="<<cost2<<endl;
+	cout<<"加速比为:"<<cost1/cost2<<endl;
+	system("pause");
+	return 0;
+}
+
