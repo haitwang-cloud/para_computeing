@@ -1,0 +1,127 @@
+
+#include "stdafx.h"
+#include <stdlib.h>
+#include <omp.h>
+#include <time.h>
+#include<iostream>
+using namespace std;
+int Getwht_dataSize()
+{
+	double wht_length;
+//	while(true)
+	{
+		printf("请输入生成的随机数的个数 :");
+		
+		cin>>wht_length;
+		/*读出正确的wht_length，返回；否则，继续要求输入*/
+//		if((wht_length>=42000) && (wht_length<=45000))		
+//			break;
+//		printf("输入错误,数字范围是 [42000~45000]");
+		printf("\n");
+	}
+	return wht_length;
+}
+int Partition(int *data,int wht_l,int wht_u)
+{
+	int pivo, wht_counter, wht_j,wht_temp_num;
+
+	pivo=data[wht_u];			
+	wht_counter=wht_l-1;			
+
+	for(wht_j=wht_l;wht_j<wht_u;wht_j++)
+		if(data[wht_j]<=pivo)
+		{
+			wht_counter++;			//wht_counter表示比pivo小的元素的个数
+			wht_temp_num=data[wht_counter];
+			data[wht_counter]=data[wht_j];
+			data[wht_j]=wht_temp_num;
+		}
+
+		wht_temp_num=data[wht_counter+1];
+		data[wht_counter+1]=data[wht_u];
+		data[wht_u]=wht_temp_num;			//以pivo为分界，data[i+1]=pivo
+
+		return wht_counter;
+}
+
+int *QuickSort(int *data,int wht_l,int wht_u)         //对起止位置为wht_l和wht_u的数组序列，进行串行快速排序
+{
+	int wht_r;
+	if(wht_l<wht_u)
+	{
+		wht_r=Partition(data,wht_l,wht_u);
+		QuickSort(data,wht_l,wht_r-1);
+		QuickSort(data,wht_r+1,wht_u);
+	}
+	return data;
+}
+
+int *Para_QuickSort(int *data,int wht_l,int wht_u)        //并行快速排序
+{
+	int wht_r;
+	if(wht_l<wht_u)
+	{
+		wht_r=Partition(data,wht_l,wht_u);
+        #pragma omp parallel 
+		{
+            #pragma omp sections 
+			{
+                #pragma omp section
+				Para_QuickSort(data,wht_l,wht_r);
+                #pragma omp section
+				Para_QuickSort(data,wht_r+1,wht_u);
+			}
+		}
+	}
+	return data;
+}
+
+void main(int argc,char *argv[])
+{
+	double wht_cost1,wht_cost2;
+	omp_set_num_threads(2);
+	int wht_num=Getwht_dataSize();
+	int *array1=new int[wht_num];
+	cout<<"随机数生成："<<endl;
+	srand(396);
+	for(int i=0;i<wht_num;i++)
+	{
+		int s=(int)rand();
+		array1[i]=s;
+		cout<<array1[i]<<" ";
+	}
+	clock_t wht_start =clock();                     //并行开始时间
+	array1=Para_QuickSort(array1,0,wht_num-1);
+	clock_t wht_end =clock();   //并行结束时间
+	cout<<endl;
+	cout<<"并行结果："<<endl;
+	for (int i=0;i<wht_num;i++)
+	{
+		cout<<array1[i]<<" ";
+	}	
+	printf("\n");
+	
+	wht_cost1=(double)wht_end-wht_start;
+	cout<<"并行时间="<<wht_cost1<<endl;
+
+
+	clock_t wht_start1 =clock();                     //串行开始时间
+	array1=QuickSort(array1,0,wht_num-1);
+	clock_t wht_end1 =clock(); //串行结束时间
+	
+	cout<<"串行结果："<<endl;
+	for (int i=0;i<wht_num;i++)
+	{
+		cout<<array1[i]<<" ";
+	}	
+	
+	wht_cost2=(double)wht_end1-wht_start1;
+	cout<<endl;
+	cout<<"串行时间="<<wht_cost2<<endl;
+
+	cout<<"加速比="<<wht_cost2/wht_cost1<<endl;
+
+	system("pause");
+}
+
+
