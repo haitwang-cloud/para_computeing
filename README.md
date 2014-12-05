@@ -1,3 +1,3 @@
--para_computeing
+para_computeing
 ================
 快速排序的各种实现，希望会有用
