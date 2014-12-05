@@ -1,0 +1,113 @@
+package quicksort;
+public class quick1 {
+	public static void main(String[] args) throws InterruptedException
+	{
+		System.out.println("Runnable实现");
+		int wht_length =10000000; 
+		int wht_array[]=new int[wht_length];
+		int wht_array1[]=new int[wht_length];
+		for (int wht_i = 0; wht_i < wht_length; wht_i++) {
+			int s=(int) (Math.random()*100000000);
+			wht_array[wht_i]=s;
+			wht_array1[wht_i]=s;
+			//System.out.print(s+" ");
+		}
+	    long start_time = System.currentTimeMillis();
+	    quicksort thread4=new quicksort(wht_array,0,wht_length-1);
+	    thread4.compute(wht_array1,0,wht_length-1);
+	    long end_time = System.currentTimeMillis();
+	    double cost1=end_time-start_time;
+	   // System.out.println();
+	    System.out.println("串行时间="+cost1);
+//	    for (int wht_i = 0; wht_i < wht_length; wht_i++) {
+//			System.out.print(wht_array1[wht_i]+" ");
+//		}
+	    long start_time1= System.currentTimeMillis();
+		quicksort qs1=new quicksort(wht_array,0,wht_length/2-1);
+		quicksort qs2=new quicksort(wht_array,wht_length/2,wht_length-1);
+		Thread qsort1=new Thread(qs1);
+		Thread qsort2=new Thread(qs2);
+		qsort1.start();
+		qsort2.start();
+		qsort1.join();
+		qsort2.join();
+		quicksort qsort3=new quicksort(wht_array,0,wht_length-1);
+		qsort3.Union(wht_array, 0, wht_length);    
+		long end_time1 = System.currentTimeMillis();
+		double cost2=end_time1-start_time1;
+		// System.out.println();
+		System.out.println("并行时间="+cost2);
+//		 for (int wht_i = 0; wht_i < wht_length; wht_i++) {
+//				System.out.print(wht_array[wht_i]+" ");
+//			}
+	   System.out.println("加速比为="+cost1/cost2);
+	}
+}
+class quicksort implements Runnable{
+	private int[] wht_array;
+	private int[] wht_array1;
+	private int wht_start;
+	private int wht_end;
+	private  int wht_length=0;
+	public quicksort(int[] wht_array, int wht_start, int wht_end) {
+		    super();
+		    this.wht_array=wht_array;
+			this.wht_start=wht_start;
+			this.wht_end=wht_end;
+	}
+	public void compute(int  wht_array[],int  wht_start, int wht_end)
+	{  
+		int i=wht_start;
+		int j=wht_end;
+		int wht_tmp;
+		if(wht_start<wht_end)
+		{
+			wht_tmp=wht_array[wht_start];
+			while(i!=j)
+			{
+				while((j>i)&&(wht_array[j]>=wht_tmp))
+					j--;
+				wht_array[i]=wht_array[j];
+				while(i<j&&wht_array[i]<=wht_tmp)
+					i++;
+				wht_array[j]=wht_array[i];
+			}
+			wht_array[i]=wht_tmp;
+			compute(wht_array,wht_start,i-1);
+			compute(wht_array,i+1,wht_end); 
+		}
+	}
+	void Union(int  wht_array[],int wht_low,int wht_length)
+	{  int wht_array1[]=new int[wht_length];
+	  	int i=wht_low,j=wht_length/2,k=0;
+		while((i<wht_length/2)&&(j<wht_length))
+			if(wht_array[i]<=wht_array[j])
+			{   
+				wht_array1[k]=wht_array[i];
+				i++;k++;
+			}
+			else
+			{
+				wht_array1[k]=wht_array[j];
+				j++;k++;
+			}
+			while(i<wht_length/2)
+			{
+				wht_array1[k]=wht_array[i];
+				i++;k++;
+
+			}
+			while(j<wht_length)
+			{
+				wht_array1[k]=wht_array[j];
+				j++;k++;
+			}
+			for(k=0,i=wht_low;i<wht_length;k++,i++)
+			{wht_array[i]=wht_array1[k];
+			
+			}
+	}
+	public void run() {
+		compute(wht_array, wht_start, wht_end);	
+	}
+}
