@@ -1,0 +1,145 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Diagnostics;
+namespace _.net_quicksort
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            int wht_length;
+            while (true)
+            {
+                Console.Write("请输入生成的随机数的个数（范围[60000~65000]） :");
+                string str = Console.ReadLine();
+                wht_length = int.Parse(str);
+                if ((wht_length >= 60000) && (wht_length <= 65000))
+                    break;
+                Console.Write("输入错误,数字范围是 [60000~65000]");
+            }
+            double [] wht_array = new double[wht_length];//定义获取随机数的输入数组
+            double [] wht_array1 = new double[wht_length];
+
+            Random r = new Random(396);
+
+            for (int wht_i = 0; wht_i < wht_length; wht_i++)
+            {
+                double s = r.Next(-1000, 10000);
+               wht_array1[wht_i]=wht_array[wht_i] = s;
+               // Console.Write(wht_array[wht_i] + " ");
+            }
+            
+            Stopwatch wht_timeCounter = new Stopwatch();
+            //==============================================================================
+            quicksort wht_job1 = new quicksort(wht_array, 0, wht_length / 2 - 1);
+            ThreadStart part1 = new ThreadStart(wht_job1.run);
+            Thread newthread1 = new Thread(part1);
+            quicksort wht_job2 = new quicksort(wht_array, wht_length / 2, wht_length - 1);
+            ThreadStart part2 = new ThreadStart(wht_job2.run);
+            Thread newthread2 = new Thread(part2);
+            wht_timeCounter.Start();
+            newthread1.Start();
+            newthread2.Start();
+            newthread1.Join();
+            newthread2.Join();
+            quicksort thread3 = new quicksort(wht_array, 0, wht_length - 1);
+            thread3.Merge(wht_array, 0, wht_length);
+            wht_timeCounter.Stop();
+            TimeSpan timeRecord = wht_timeCounter.Elapsed;
+            double wht_cost1 = timeRecord.TotalMilliseconds;
+            Console.Write("并行时间：");
+            Console.WriteLine(wht_cost1);
+            //========================================================================
+
+            wht_timeCounter.Start();
+            quicksort serial_qs = new quicksort(wht_array1, 0, wht_length - 1);
+            serial_qs.compute(wht_array1, 0, wht_length - 1);
+            wht_timeCounter.Stop();
+            TimeSpan timeRecord2 = wht_timeCounter.Elapsed;
+            double wht_cost2 = timeRecord2.TotalMilliseconds;
+            Console.Write("串行时间：");
+            Console.WriteLine(wht_cost2);
+            Console.Write("加速比为：");
+            Console.WriteLine(wht_cost2 / wht_cost1);
+            Console.Read();
+        }
+
+
+    }
+    class quicksort
+    {
+        private double [] wht_array;
+        private int wht_start;
+        private int wht_end;
+        public quicksort(double [] wht_array, int wht_start, int wht_end)
+        {
+            this.wht_array = wht_array;
+            this.wht_start = wht_start;
+            this.wht_end = wht_end;
+        }
+
+        public void compute(double [] wht_array, int wht_start, int wht_end)
+        {
+            int wht_i = wht_start;
+            int wht_j = wht_end;
+            double wht_tmp;
+            if (wht_start < wht_end)
+            {
+                wht_tmp = wht_array[wht_start];
+                while (wht_i != wht_j)
+                {
+                    while ((wht_j > wht_i) && (wht_array[wht_j] >= wht_tmp))
+                        wht_j--;
+                    wht_array[wht_i] = wht_array[wht_j];
+                    while (wht_i < wht_j && wht_array[wht_i] <= wht_tmp)
+                        wht_i++;
+                    wht_array[wht_j] = wht_array[wht_i];
+                }
+                wht_array[wht_i] = wht_tmp;
+                compute(wht_array, wht_start, wht_i - 1);
+                compute(wht_array, wht_i + 1, wht_end);
+            }
+        }
+        public void Merge(double [] wht_array, int wht_begin, int wht_length)
+        {
+            double [] ss_R1 = new double [wht_length];//定义获取随机数的输入数组
+            int wht_i = wht_begin, wht_j = wht_length / 2, wht_k = 0;
+            while ((wht_i < wht_length / 2) && (wht_j < wht_length))
+                if (wht_array[wht_i] <= wht_array[wht_j])
+                {
+                    ss_R1[wht_k] = wht_array[wht_i];
+                    wht_i++; wht_k++;
+                   
+                }
+                else
+                {
+                    ss_R1[wht_k] = wht_array[wht_j];
+                    wht_j++; wht_k++;
+                }
+            while (wht_i < wht_length / 2)
+            {
+                ss_R1[wht_k] = wht_array[wht_i];
+                wht_i++; wht_k++;
+
+            }
+            while (wht_j < wht_length)
+            {
+                ss_R1[wht_k] = wht_array[wht_j];
+                wht_j++; wht_k++;
+            }
+            for (wht_k = 0, wht_i = wht_begin; wht_i < wht_length; wht_k++, wht_i++)
+            {
+                wht_array[wht_i] = ss_R1[wht_k];
+
+            }
+        }
+        public void run()
+        {
+            compute(wht_array, wht_start, wht_end);
+        }
+
+        }
+    }
