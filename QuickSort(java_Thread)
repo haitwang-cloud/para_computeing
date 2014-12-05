@@ -1,0 +1,80 @@
+package quicksort;
+import java.util.Random;
+public class quick extends Thread
+{
+	private int wht_start;
+	private long wht_end;
+private  long[] wht_array=new long[1000000];
+	public quick(int wht_start,long wht_end,long[] wht_array)
+	{
+	super();
+	this.wht_start=wht_start;
+	this.wht_end=wht_end;
+	this.wht_array=wht_array;
+	}
+public void run()
+	{
+	quick th1=new quick(wht_start,wht_end,wht_array);
+	th1.QS(wht_array, 0, wht_array.length-1);
+    } 
+public void QS(long[] wht_array,int wht_start,long wht_end) 
+{ 
+    if(wht_start<wht_end) 
+    { 
+        long key=wht_array[wht_start];//初始化保存基元  
+        int wht_i=wht_start,wht_j;//初始化i,j  
+        for(wht_j=wht_start+1;wht_j<=wht_end;wht_j++) 
+          
+            if(wht_array[wht_j]<key)//如果此处元素小于基元，则把此元素和i+1处元素交换，并将i加1，如大于或等于基元则继续循环  
+            { 
+                long wht_temp=wht_array[wht_j]; 
+                wht_array[wht_j]=wht_array[wht_i+1]; 
+                wht_array[wht_i+1]=wht_temp; 
+                wht_i++; 
+            } 
+        wht_array[wht_start]=wht_array[wht_i];//交换i处元素和基元  
+        wht_array[wht_i]=key; 
+        QS(wht_array, wht_start, wht_i-1);//递归调用  
+        QS(wht_array, wht_i+1, wht_end);    
+    } 
+ }
+	public static void  main(String[] args) throws InterruptedException 
+	{
+		System.out.println("Thread类实现");
+		 long[] wht_array=new long[1000000]; 
+		 long []wht_array1=new long [500000];
+		 long []wht_array2=new long [500000];
+			long max=999999999;
+		    long min=10000000;
+		    Random random = new Random();
+		    for(int wht_i=0;wht_i<=wht_array.length-1;++wht_i)
+		    {
+		    	 long wht_s = random.nextLong()%(max-min+1) + min;
+		    	 wht_array[wht_i]=wht_s;
+		    	// System.out.print(wht_s+" ");
+		    }
+	    for(int wht_i=0;wht_i<=wht_array2.length-1;++wht_i)
+		    {
+		    	wht_array1[wht_i]=wht_array[wht_i];
+		    	wht_array2[wht_i]=wht_array[wht_i+500000];
+	    }
+		    long startTime1=System.currentTimeMillis();
+		   quick serial=new quick(1,1000000,wht_array);
+			serial.QS(wht_array, 0, wht_array.length-1);
+			long endTime1=System.currentTimeMillis();
+			double cost2=endTime1-startTime1;
+			System.out.println("串行时间="+cost2);
+	quick thread1=new quick(1,500000,wht_array1);
+	quick thread2=new quick(500000, 1000000,wht_array2);
+		long startTime=System.currentTimeMillis();
+		thread1.start();
+		thread2.start();
+		thread1.join();
+		thread2.join();
+		long endTime=System.currentTimeMillis();		
+		double cost1=endTime-startTime;
+		System.out.println("并行时间="+cost1);
+		System.out.println("加速比是"+(cost2/cost1));
+	}
+}
+
